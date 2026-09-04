@@ -2730,14 +2730,13 @@ class GitGraphView {
   }
   private renderTable() {
     let html = this.renderTableHeader();
-    const currentHash = this.getCurrentDisplayHash();
     const findMatchIndexes = new Set(this.findMatches);
     const activeFindCommitIndex = this.findMatches[this.activeFindMatchIndex] ?? -1;
     const mutedHeadNonAncestors = this.mutedCommitHashesNotInHeadAncestry();
     for (let i = 0; i < this.commits.length; i++) {
       html += this.renderCommitRow(
         i,
-        currentHash,
+        this.commitHead,
         findMatchIndexes,
         activeFindCommitIndex,
         mutedHeadNonAncestors
@@ -4321,9 +4320,6 @@ class GitGraphView {
   private renderTableHeader() {
     return `<tr id="tableColHeaders"><th id="tableHeaderGraphCol" class="tableColHeader">${l10n.graph}</th><th class="tableColHeader">${l10n.description}</th><th class="tableColHeader">${l10n.date}</th><th class="tableColHeader">${l10n.author}</th><th class="tableColHeader">${l10n.commit}</th><th class="tableColHeader signatureCol">${l10n.signature}</th></tr>`;
   }
-  private getCurrentDisplayHash() {
-    return this.commits.length > 0 && this.commits[0].hash === "*" ? "*" : this.commitHead;
-  }
   private renderCommitRow(
     index: number,
     currentHash: string | null,
@@ -4343,10 +4339,13 @@ class GitGraphView {
       activeFindCommitIndex,
       mutedHeadNonAncestors.has(commit.hash)
     );
-    // The wrapper span is unconditional — the mute styling keys off it. Only the
-    // bold weight is opt-in, and it is scoped to the commit message: ref labels
-    // keep regular weight whatever this setting says.
-    const boldMessage = this.config.boldCheckedOutCommit && commit.hash === currentHash;
+    // The wrapper span is unconditional because mute styling keys off it. The
+    // uncommitted status is always bold; regular commit messages remain subject
+    // to the checked-out commit setting or detached HEAD state.
+    const isDetachedHead = this.gitBranchHead === null && commit.hash === currentHash;
+    const boldMessage =
+      commit.hash === "*" ||
+      (commit.hash === currentHash && (this.config.boldCheckedOutCommit || isDetachedHead));
     const commitMessage = `<span class="commitMessage">${
       boldMessage ? `<b>${message}</b>` : message
     }</span>`;
@@ -4355,7 +4354,7 @@ class GitGraphView {
     return (
       `<tr ${rowAttributes}` +
       ` data-id="${index}" data-color="${this.graph.getVertexColor(index)}"><td></td><td>` +
-      (isHeadCommit ? '<span class="commitHeadDot"></span>' : "") +
+      (isHeadCommit ? '<span class="commitHeadDot" aria-hidden="true"></span>' : "") +
       this.renderCommitRefs(commit) +
       commitMessage +
       `</td><td title="${date.title}">` +

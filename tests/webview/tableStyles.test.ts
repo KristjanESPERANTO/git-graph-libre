@@ -79,6 +79,14 @@ describe("commit table styles", () => {
     expect(css).toContain("var(--vscode-list-activeSelectionBackground");
   });
 
+  it("keeps the checked-out row visible beyond the graph column", () => {
+    expect(css).toContain('#commitTable tr.commit[aria-current="true"] td {');
+    expect(css).toContain('#commitTable tr.commit[aria-current="true"] td:first-child {');
+    expect(css).toContain("background-color: var(--git-graph-color");
+    expect(css).toContain(".commitSelected[aria-current=\"true\"] td {");
+    expect(css).toContain("var(--vscode-list-activeSelectionBackground)");
+  });
+
   it("renders a dedicated centered view for repositories with no commits", () => {
     const row = css.match(/^\.noCommitsRow td \{[^}]+\}/m)?.[0] ?? "";
     expect(row).toContain("text-align: center;");
@@ -122,22 +130,27 @@ describe("commit table styles", () => {
     expect(css).toContain("display: none;");
   });
 
-  it("marks the checked-out branch label with a colored border and no bold weight", () => {
-    // Bolding is scoped to the commit description (the opt-in
-    // `repository.boldCheckedOutCommit` setting wraps the message in <b>), never
-    // to ref labels. The checked-out branch is distinguished by its graph-color
-    // border alone, so no ref surface may carry a font weight: not the active
-    // label, not the group container its alias children would inherit from, and
-    // not any broader group-child or alias override.
+  it("marks the checked-out branch label with a colored border and bold weight", () => {
     const active = css.match(/^\.gitRef\.active \{[^}]+\}/m)?.[0] ?? "";
     expect(active).toContain("border-color: var(--git-graph-color);");
-    expect(active).not.toContain("font-weight");
+    expect(active).toContain("font-weight: 700;");
 
     const group = css.match(/^\.gitRefGroup\.active \{[^}]+\}/m)?.[0] ?? "";
     expect(group).toContain("border-color: var(--git-graph-color);");
-    expect(group).not.toContain("font-weight");
+    expect(group).toContain("font-weight: 700;");
     expect(css).not.toContain(".gitRefGroup.active > .gitRef");
-    expect(css).not.toMatch(/\.gitRefAlias[^{]*\{[^}]*font-weight/);
+  });
+
+  it("keeps an unselected HEAD row distinct without tinting it", () => {
+    expect(css).toContain('#commitTable tr.commit[aria-current="true"] td {');
+    expect(css).toContain("background-color: var(--ngg-transparent);");
+    expect(css).not.toContain('#commitTable tr.commit[aria-current="true"] .commitMessage {');
+    expect(css).toContain(
+      "box-shadow: inset 3px 0 0 var(--vscode-focusBorder, var(--ngg-accent));"
+    );
+    expect(css).toContain(
+      "border: 2px solid var(--git-graph-color, var(--vscode-focusBorder, var(--ngg-accent)));"
+    );
   });
 
   it("distinguishes signed tags with the shared signature color", () => {

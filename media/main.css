@@ -671,12 +671,29 @@ body.commitDetailsResizing * {
 .commitHeadDot {
   width: 6px;
   height: 6px;
-  border: 2px solid var(--git-graph-color);
+  border: 2px solid var(--git-graph-color, var(--vscode-focusBorder, var(--ngg-accent)));
+  background-color: var(--git-graph-color, var(--vscode-focusBorder, var(--ngg-accent)));
   display: inline-block;
   border-radius: 6px;
   margin-right: 5px;
   vertical-align: top;
   margin-top: 7px;
+}
+
+#commitTable tr.commit[aria-current="true"] td {
+  background-color: var(--ngg-transparent);
+}
+#commitTable tr.commit[aria-current="true"] td:first-child {
+  box-shadow: inset 3px 0 0 var(--vscode-focusBorder, var(--ngg-accent));
+}
+#commitTable tr.commit[aria-current="true"]:hover td {
+  background-color: var(--vscode-list-hoverBackground, var(--ngg-neutral-overlay-muted));
+}
+#commitTable tr.commit.commitSelected[aria-current="true"] td {
+  background-color: var(--vscode-list-activeSelectionBackground);
+}
+#commitTable tr.commit.commitSelected[aria-current="true"] td:first-child {
+  box-shadow: inset 3px 0 0 var(--vscode-focusBorder, var(--ngg-accent));
 }
 
 /* Ref labels */
@@ -696,6 +713,7 @@ body.commitDetailsResizing * {
 }
 .gitRef.active {
   border-color: var(--git-graph-color);
+  font-weight: 700;
 }
 .gitRefGroup {
   display: inline-flex;
@@ -712,6 +730,7 @@ body.commitDetailsResizing * {
 }
 .gitRefGroup.active {
   border-color: var(--git-graph-color);
+  font-weight: 700;
 }
 .gitRefGroup > .gitRef {
   height: 18px;

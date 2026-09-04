@@ -1731,6 +1731,7 @@ describe("webview rendering", () => {
 
     expect(headRow?.getAttribute("tabindex")).toBe("0");
     expect(headRow?.getAttribute("aria-current")).toBe("true");
+    expect(headRow?.querySelector(".commitHeadDot")).not.toBeNull();
     expect(headRow?.getAttribute("aria-selected")).toBe("false");
     expect(olderRow?.getAttribute("tabindex")).toBe("0");
     expect(olderRow?.hasAttribute("aria-current")).toBe(false);
@@ -4151,6 +4152,53 @@ describe("webview rendering", () => {
     expect(headMessage()?.querySelector("b")).toBeNull();
     expect(headMessage()?.textContent).toBe("Add feature");
     expect(boldRefs()).toHaveLength(0);
+
+    receive({
+      command: "loadBranches",
+      requestId: null,
+      branches: [],
+      head: null,
+      hard: true,
+      isRepo: true,
+      error: null
+    } as unknown as GGL.ResponseMessage);
+    receiveLoadedCommits(twoCommits, "abc123");
+    expect(headMessage()?.querySelector("b")?.textContent).toBe("Add feature");
+
+    receiveLoadedCommits(
+      [
+        {
+          hash: "*",
+          parentHashes: [],
+          author: "",
+          email: "",
+          date: 0,
+          message: "Uncommitted changes (2)",
+          refs: []
+        }
+      ],
+      "*"
+    );
+    expect(document.querySelector("tr.unsavedChanges .commitMessage b")?.textContent).toBe(
+      "Uncommitted Changes (2)"
+    );
+
+    receiveLoadedCommits(
+      [
+        {
+          hash: "*",
+          parentHashes: [],
+          author: "",
+          email: "",
+          date: 0,
+          message: "Uncommitted changes (2)",
+          refs: []
+        },
+        ...twoCommits
+      ],
+      "abc123"
+    );
+    expect(headMessage()?.querySelector("b")?.textContent).toBe("Add feature");
 
     receiveLoadedCommits(twoCommits, "abc123");
   });
